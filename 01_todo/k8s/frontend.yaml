@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Unique key of the Deployment instance
+  name: todo-frontend
+spec:
+  # 3 Pods should exist at all times.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-frontend
+  template:
+    metadata:
+      labels:
+        # Apply this label to pods and default
+        # the Deployment label selector to this value
+        app: todo-frontend
+    spec:
+      containers:
+      - name: todo-frontend
+        # Run this image
+        image: avvkavvk/todo_frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: VITE_BACKEND_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: todo-config
+              key: backend_url_for_ui
+---
+
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: todo-frontend-service
+
+spec:
+  selector:
+    app: todo-frontend
+  ports:
+  - protocol: "TCP"
+    port: 3000
+    targetPort: 3000

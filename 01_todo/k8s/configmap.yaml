@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-config
+  labels:
+    app: todo
+data:
+  backend_port: "5000"
+  mongodb_host: "todo-mongo-service"
+  mongodb_port: "27017"
+  mongodb_username: "admin"
+  mongodb_password: "secretpassword"
+  backend_url_for_ui: "/api/todos"
