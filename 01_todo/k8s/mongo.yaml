@@ -29,6 +29,13 @@ spec:
             configMapKeyRef:
               name: todo-config
               key: mongodb_password
+        volumeMounts:
+        - name: todo-mongo-vol
+          mountPath: /data/db
+      volumes:
+      - name: todo-mongo-vol
+        persistentVolumeClaim:
+          claimName: todo-pvc
 ---
 
 apiVersion: v1
