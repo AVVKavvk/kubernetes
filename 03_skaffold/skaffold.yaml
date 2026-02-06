@@ -1,0 +1,37 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+
+metadata:
+    name: go-skaffold-demo
+
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - context: .
+      docker:
+        dockerfile: Dockerfile
+        target: dev
+      image: avvk/go-skaffold-demo
+      sync:
+        manual:
+        - src: "**/*.go"
+          dest: .
+      
+    tagPolicy:
+      sha256: {}
+    local:
+      push: false  # Don't push to registry, use local Docker daemon
+  deploy:
+    helm:
+      releases:
+      - name: go-skaffold-demo
+        chartPath: /home/vipin/k8s/03_skaffold/charts/ska
+        recreatePods: true
+        setValueTemplates:
+          image.name: "{{.IMAGE_REPO_avvk_go_skaffold_demo}}"
+          image.tag: "{{.IMAGE_TAG_avvk_go_skaffold_demo}}"
+          image.pullPolicy: IfNotPresent
+          replicaCount: 1
+        valuesFiles:
+        - /home/vipin/k8s/03_skaffold/charts/ska/values.yaml

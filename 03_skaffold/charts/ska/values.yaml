@@ -1,0 +1,34 @@
+# Default values for ska.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+port: "5000"
+image:
+  name: "avvk/go-skaffold-demo"
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+ports:
+- containerPort: 5000
+  protocol: TCP
+
+envs:
+- name: PORT
+  value: 5000
+
+nameOverride: ""
+fullnameOverride: ""
+
+
+service:
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+
+ingress:
+  enabled: true
+  className: nginx
+  host: avvk.local
