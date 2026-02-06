@@ -1,0 +1,31 @@
+{{- if .Values.ingress.enable }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.ingress.name }}
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+  - http:
+  # host: {{ .Values.ingress.host }}
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .Values.todoBackend.service.name }}
+            port:
+              number: {{ .Values.todoBackend.service.ingressPort }}
+
+      - path: /()(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ .Values.todoFrontend.service.name }}
+            port:
+              number: {{ .Values.todoFrontend.service.ingressPort }}
+{{- end }}

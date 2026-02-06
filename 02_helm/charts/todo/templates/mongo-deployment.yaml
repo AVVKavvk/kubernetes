@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mongo.name }}
+  labels:
+    app: {{ .Values.mongo.app }}
+    chart: {{ include "todo.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+
+spec:
+  replicas: {{ default 1 .Values.mongo.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.mongo.app }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mongo.app }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.mongo.name }}
+        image: "{{ .Values.mongo.image.name }}:{{ .Values.mongo.image.tag }}"
+        imagePullPolicy: {{ .Values.mongo.image.imagePullPolicy }}
+        ports:
+        {{- range .Values.mongo.image.ports }}
+        - containerPort: {{ .containerPort | int }}
+          protocol: {{ .protocol }}
+        {{- end }}
+
+        env:
+        {{- range .Values.mongo.image.envs}}
+        - name: {{.name}}
+          value: {{.value | quote}}
+        {{- end}}
+

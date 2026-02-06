@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.todoBackend.name }}
+  labels:
+    app: {{ .Values.todoBackend.app }}
+    chart: {{ include "todo.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+
+spec:
+  replicas: {{ default 1 .Values.todoBackend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.todoBackend.app }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.todoBackend.app }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.todoBackend.name }}
+        image: "{{ .Values.todoBackend.image.name }}:{{ .Values.todoBackend.image.tag }}"
+        imagePullPolicy: {{ .Values.todoBackend.image.imagePullPolicy }}
+        ports:
+        {{- range .Values.todoBackend.image.ports }}
+        - containerPort: {{ .containerPort | int }}
+          protocol: {{ .protocol }}
+        {{- end }}
+
+        env:
+        {{- range .Values.todoBackend.image.envs}}
+        - name: {{.name}}
+          value: {{.value | quote}}
+        {{- end}}
+

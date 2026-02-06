@@ -1,0 +1,115 @@
+nameOverride: "todo-app"
+fullnameOverride: "todo"
+
+todoBackend:
+  replicaCount: 3
+  app: todo-backend
+  name: todo-backend
+  image:
+    name: avvkavvk/todo_backend
+    tag: latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 5000
+      protocol: TCP
+    envs:
+    - name: PORT
+      value: "5000"
+    - name: MONGODB_HOST
+      value: todo-mongo-service
+    - name: MONGODB_PORT
+      value: "27017"
+    - name: MONGODB_USERNAME
+      value: admin
+    - name: MONGODB_PASSWORD
+      value: secretpassword
+
+  service:
+    app: todo-backend
+    name: todo-backend-service
+    type: LoadBalancer
+    ingressPort: 5000
+    ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+todoFrontend:
+  app: todo-frontend
+  name: todo-frontend
+  replicaCount: 1
+  image:
+    name: avvkavvk/todo_frontend
+    tag: latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 3000
+      protocol: TCP
+    envs:
+    - name: VITE_BACKEND_API_URL
+      value: /api/todos
+
+  service:
+    app: todo-frontend
+    name: todo-frontend-service
+    ingressPort: 3000
+    ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+
+mongo:
+  app: todo-mongo
+  name: todo-mongo
+  replicaCount: 1
+  image:
+    name: mongo
+    tag: latest
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 27017
+      protocol: TCP
+    envs:
+    - name: MONGO_INITDB_ROOT_USERNAME
+      value: admin
+    - name: MONGO_INITDB_ROOT_PASSWORD
+      value: secretpassword
+
+  service:
+    app: todo-mongo
+    name: todo-mongo-service
+    ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+
+ingress:
+  enable: true
+  name: todo-ingress
+  app: todo-ingress
+  className: nginx
+  host: avvk.com
+  path: /
+
+# default
+service:
+  type: ClusterIP
+  port: 80
+
+# ingress:
+#   enabled: true
+#   path: /
+#   whitelistSourceRange: 172.87.156.186/32,52.4.135.100/32,185.159.124.35/32,172.87.156.190/32,89.188.2.26/32,89.188.2.30/32,192.40.4.0/23,208.81.97.0/27,208.81.99.240/32,167.248.134.0/23,167.94.38.0/23,167.94.228.0/23,208.81.96.0/22,216.245.88.0/21,209.94.248.0/26,61.120.148.0/25,210.248.158.0/24,218.102.54.64/26,223.197.211.0/25,199.204.51.0/25,195.81.164.160/27,89.202.213.96/28,62.50.13.192/27,199.45.160.0/22,96.9.120.0/22
+#   annotations:
+#     kubernetes.io/ingress.class: nginx
+#     cert-manager.io/cluster-issuer: letsencrypt
+#     nginx.ingress.kubernetes.io/proxy-next-upstream-timeout: "180"
+#     nginx.ingress.kubernetes.io/proxy-send-timeout: "180"
+#     nginx.ingress.kubernetes.io/proxy-read-timeout: "180"
+#     nginx.ingress.kubernetes.io/proxy-next-upstream-tries: "1"
+#   hosts:
+#     - nexus.aus1hub1.eencloud.com
+#   tls:
+#     - secretName: nexus-web-tls
+#       hosts:
+#         - nexus.aus1hub1.eencloud.com
