@@ -3,6 +3,7 @@ resources:
     type: git
     source:
       uri: https://github.com/AVVKavvk/kubernetes.git
+      branch: main
       username: AVVKavvk
       password: ((get-resource.github_token))
 
