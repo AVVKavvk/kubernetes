@@ -1,0 +1,43 @@
+resources:
+  - name: repo
+    type: git
+    source:
+      uri: ((github.github_url))
+      branch: main
+      username: ((github.github_username))
+      password: ((github.github_token))
+
+  - name: my-docker-image
+    type: docker-image
+    source:
+      repository: ((docker-hub.username))/test-with-concourse
+      username: ((docker-hub.username))
+      password: ((docker-hub.password))
+
+jobs:
+  - name: push-to-hub
+    plan:
+      - get: repo
+      - task: see-the-repo
+        config:
+          platform: linux
+          image_resource: &image_resource
+            type: registry-image
+            source:
+              repository: alpine/git
+              tag: latest
+          inputs:
+            - name: repo
+          run:
+            path: sh
+            args:
+              - -cx
+              - |
+                cd repo/04_concourse
+                find .
+
+      - put: my-docker-image
+        params:
+          build: repo/04_concourse/05_dokcer_image
+        get_params:
+          skip_download: true
