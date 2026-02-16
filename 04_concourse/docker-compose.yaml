@@ -1,6 +1,6 @@
 services:
   concourse-db:
-    image: postgres
+    image: postgres:15-alpine  # Lighter image
     environment:
       POSTGRES_DB: concourse
       POSTGRES_PASSWORD: concourse_pass
@@ -46,6 +46,8 @@ services:
         condition: service_healthy
     ports: 
       - "8080:8080"
+    env_file:
+      - .vault/secret
     environment:
       CONCOURSE_POSTGRES_HOST: concourse-db
       CONCOURSE_POSTGRES_USER: concourse_user
@@ -63,10 +65,19 @@ services:
       CONCOURSE_ENABLE_PIPELINE_INSTANCES: "true"
       CONCOURSE_ENABLE_ACROSS_STEP: "true"
       CONCOURSE_ENABLE_RESOURCE_CAUSALITY: "true"
-      # OpenBao/Vault configuration
-      CONCOURSE_VAULT_URL: http://openbao:8200
-      CONCOURSE_VAULT_AUTH_BACKEND: token
-      CONCOURSE_VAULT_CLIENT_TOKEN: s.psBTH6kFt3tLUV4papvuf52S
+      
+      # Network optimization
+      CONCOURSE_WORKER_CONTAINERD_MTU: 1500  # Match host MTU
+      
+      # Registry connection settings
+      CONCOURSE_WORKER_CONTAINERD_REQUEST_TIMEOUT: 5m
+      
+    # Add sysctls for better TCP performance
+    sysctls:
+      - net.ipv4.tcp_keepalive_time=60
+      - net.ipv4.tcp_keepalive_intvl=10
+      - net.ipv4.tcp_keepalive_probes=6
+      - net.ipv4.tcp_fin_timeout=30
 
 volumes:
   concourse_db_data:
