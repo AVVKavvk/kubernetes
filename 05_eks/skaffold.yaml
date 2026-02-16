@@ -1,0 +1,36 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+
+metadata:
+    name: eks-demo
+
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - context: .
+      docker:
+        dockerfile: Dockerfile
+      image: avvk/eks-demo
+      sync:
+        manual:
+        - src: "**/*.go"
+          dest: .
+      
+    tagPolicy:
+      sha256: {}
+    local:
+      push: false  # Don't push to registry, use local Docker daemon
+  deploy:
+    helm:
+      releases:
+      - name: eks-demo
+        chartPath: /home/vipin/k8s/05_eks/chart/eks
+        recreatePods: true
+        setValueTemplates:
+          image.name: "{{.IMAGE_REPO_avvk_eks_demo}}"
+          image.tag: "{{.IMAGE_TAG_avvk_eks_demo}}"
+          image.pullPolicy: IfNotPresent
+          replicaCount: 1
+        valuesFiles:
+        - /home/vipin/k8s/05_eks/chart/eks/values.yaml

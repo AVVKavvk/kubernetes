@@ -1,0 +1,46 @@
+# Default values for eks.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+namespace: "eks-test"
+image:
+  name: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+  ports:
+  - name: http
+    containerPort: 8000
+    protocol: TCP
+
+imagePullSecrets: []
+nameOverride: "eks"
+fullnameOverride: "eks"
+
+
+
+service:
+  type: LoadBalancer
+  port: 80
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8000
+    targetPort: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  hosts:
+    - host: dev.atts.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 8000
+  tls: []
+
