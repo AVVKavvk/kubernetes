@@ -1,0 +1,38 @@
+jobs:
+  - name: input-output
+    plan:
+      - task: output-task
+        config:
+          platform: linux
+          image_resource: &image
+            type: registry-image
+            source:
+              repository: busybox
+              tag: latest
+          outputs:
+            - name: the-artifact
+          run:
+            path: sh
+            args:
+              - -cx
+              - |
+                ls -l .
+                echo "hello world from another step" > the-artifact/message
+                pwd
+
+      - task: input-task
+        config:
+          platform: linux
+          image_resource: *image
+
+          inputs:
+            - name: the-artifact
+
+          run:
+            path: sh
+            args:
+              - -cx
+              - |
+                ls -la .
+                cat the-artifact/message
+                pwd

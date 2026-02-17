@@ -1,0 +1,83 @@
+services:
+  concourse-db:
+    image: postgres:15-alpine  # Lighter image
+    environment:
+      POSTGRES_DB: concourse
+      POSTGRES_PASSWORD: concourse_pass
+      POSTGRES_USER: concourse_user
+      PGDATA: /database
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - concourse_db_data:/database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U concourse_user -d concourse"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  openbao:
+    image: openbao/openbao:latest
+    container_name: openbao
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./bao-data:/bao/data
+      - ./bao-config:/bao/config
+    cap_add:
+      - IPC_LOCK
+    restart: unless-stopped
+    command: server -config=/bao/config/config.hcl
+    healthcheck:
+      test: ["CMD-SHELL", "bao status -address=http://127.0.0.1:8200 -ignore-sealed || exit 0"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  concourse:
+    image: concourse/concourse
+    command: quickstart
+    privileged: true
+    cgroup: host
+    depends_on:
+      concourse-db:
+        condition: service_healthy
+      openbao:
+        condition: service_healthy
+    ports: 
+      - "8080:8080"
+    env_file:
+      - .vault/secret
+    environment:
+      CONCOURSE_POSTGRES_HOST: concourse-db
+      CONCOURSE_POSTGRES_USER: concourse_user
+      CONCOURSE_POSTGRES_PASSWORD: concourse_pass
+      CONCOURSE_POSTGRES_DATABASE: concourse
+      CONCOURSE_EXTERNAL_URL: http://localhost:8080
+      CONCOURSE_ADD_LOCAL_USER: test:test
+      CONCOURSE_MAIN_TEAM_LOCAL_USER: test
+      CONCOURSE_WORKER_BAGGAGECLAIM_DRIVER: overlay
+      CONCOURSE_CLIENT_SECRET: Y29uY291cnNlLXdlYgo=
+      CONCOURSE_TSA_CLIENT_SECRET: Y29uY291cnNlLXdvcmtlcgo=
+      CONCOURSE_CLUSTER_NAME: tutorial
+      CONCOURSE_WORKER_CONTAINERD_DNS_SERVER: "8.8.8.8"
+      CONCOURSE_WORKER_RUNTIME: "containerd"
+      CONCOURSE_ENABLE_PIPELINE_INSTANCES: "true"
+      CONCOURSE_ENABLE_ACROSS_STEP: "true"
+      CONCOURSE_ENABLE_RESOURCE_CAUSALITY: "true"
+      
+      # Network optimization
+      CONCOURSE_WORKER_CONTAINERD_MTU: 1500  # Match host MTU
+      
+      # Registry connection settings
+      CONCOURSE_WORKER_CONTAINERD_REQUEST_TIMEOUT: 5m
+      
+    # Add sysctls for better TCP performance
+    sysctls:
+      - net.ipv4.tcp_keepalive_time=60
+      - net.ipv4.tcp_keepalive_intvl=10
+      - net.ipv4.tcp_keepalive_probes=6
+      - net.ipv4.tcp_fin_timeout=30
+
+volumes:
+  concourse_db_data:

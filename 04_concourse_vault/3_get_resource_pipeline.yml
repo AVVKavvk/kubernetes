@@ -1,0 +1,34 @@
+resources:
+  - name: repo
+    type: git
+    source:
+      uri: https://github.com/AVVKavvk/kubernetes.git
+      branch: main
+      username: AVVKavvk
+      password: ((get-resource.github_token))
+
+jobs:
+  - name: read-helm
+    plan:
+      - get: repo
+      - task: read-helm-task
+        config:
+          platform: linux
+          image_resource: &image_resource
+            type: registry-image
+            source:
+              repository: busybox
+              tag: latest
+          inputs:
+            - name: repo
+
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                cd repo
+                pwd
+                ls .
+                cd 02_helm
+                ls .

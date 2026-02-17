@@ -1,0 +1,53 @@
+resources:
+  - name: repo
+    type: git
+    source:
+      uri: https://github.com/AVVKavvk/kubernetes.git
+      branch: main
+      username: AVVKavvk
+      password: ((put-resource.github_token))
+
+jobs:
+  - name: put-data
+    plan:
+      - get: repo
+      - task: make-file
+        config:
+          platform: linux
+          image_resource: &image_resource
+            type: registry-image
+            source:
+              repository: alpine/git
+              tag: latest
+
+          inputs:
+            - name: repo # Input the repo so we can write into it
+          outputs:
+            - name: repo # Output the modified repo
+
+          run:
+            path: sh
+            args:
+              - -cx
+              - |
+                # 1. Navigate into the repo
+                cd repo
+
+                # 2. Configure git (required for committing)
+                git config --global user.email "concourse@local.host"
+                git config --global user.name "Concourse CI"
+
+                # 3. Create the file
+                echo "This from concourse" > concourse.txt
+
+                # 4. Stage and commit the changes
+                git add concourse.txt
+                git commit -m "Added concourse.txt from pipeline"
+
+      - put: repo
+        params:
+          repository: repo
+          rebase: true
+
+# https://github.com/concourse/git-resource
+# https://gemini.google.com/share/22bfb0d9ffea
