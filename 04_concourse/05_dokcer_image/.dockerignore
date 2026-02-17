@@ -1,9 +1,0 @@
-.git
-.gitignore
-*.md
-.env
-.vscode
-.idea
-*.log
-tmp/
-vendor/
