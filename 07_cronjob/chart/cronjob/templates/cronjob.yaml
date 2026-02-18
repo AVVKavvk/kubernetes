@@ -1,0 +1,21 @@
+{{- if .Values.jobs }}
+{{- range .Values.jobs }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "cronjob.fullname" $ }}-{{ .name }}
+spec:
+  schedule: {{ .schedule | quote }}
+  concurrencyPolicy: {{ .concurrencyPolicy | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: worker
+              image: busybox
+              command: {{ .command | toJson }}
+          restartPolicy: OnFailure
+{{- end }}
+{{- end }}
