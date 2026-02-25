@@ -1,0 +1,33 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+
+metadata:
+    name: opensearch
+
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - context: .
+      docker:
+        dockerfile: Dockerfile
+      image: avvk/opensearch
+      sync:
+        manual:
+        - src: "**/*.go"
+          dest: .
+      
+    tagPolicy:
+      sha256: {}
+    local:
+      push: false  # Don't push to registry, use local Docker daemon
+  deploy:
+    helm:
+      releases:
+      - name: opensearch
+        chartPath: /home/vipin/k8s/08_opensearch/chart/opensearch
+        recreatePods: true
+        setValueTemplates:
+          replicaCount: 1
+        valuesFiles:
+        - /home/vipin/k8s/08_opensearch/chart/opensearch/values.yaml
