@@ -1,0 +1,16 @@
+# values.yaml
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.avvk.local
+    path: /
+
+prometheus:
+  prometheusSpec:
+    # Setting these to {} tells Prometheus to discover ALL ServiceMonitors 
+    # in the cluster, regardless of their labels.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {} 
+    podMonitorSelector: {}
