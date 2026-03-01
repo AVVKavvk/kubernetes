@@ -1,0 +1,33 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+
+metadata:
+    name: prometheus-grafana
+
+profiles:
+- name: dev
+  build:
+    artifacts:
+    - context: .
+      docker:
+        dockerfile: Dockerfile
+      image: avvk/prometheus-grafana
+      sync:
+        manual:
+        - src: "**/*.go"
+          dest: .
+      
+    tagPolicy:
+      sha256: {}
+    local:
+      push: false  # Don't push to registry, use local Docker daemon
+  deploy:
+    helm:
+      releases:
+      - name: prometheus-grafana
+        chartPath: /home/vipin/k8s/09_prometheus_grafana/chart/prometheus-grafana
+        recreatePods: true
+        setValueTemplates:
+          replicaCount: 1
+        valuesFiles:
+        - /home/vipin/k8s/09_prometheus_grafana/chart/prometheus-grafana/values.yaml

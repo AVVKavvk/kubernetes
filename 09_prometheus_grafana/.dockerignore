@@ -1,0 +1,17 @@
+tmp/
+
+**.log
+
+.env
+
+chart
+
+fluentb
+
+Dockerfile
+
+skaffold.yaml
+
+.dockerignore
+
+.gitignore
