@@ -1,0 +1,16 @@
+# templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Chart.Name}}-monitor
+  labels:
+    release: avvk-prom-grafana # Matches the name of your prometheus-stack installation
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name}}
+      release: {{ .Release.Name }}
+  endpoints:
+  - port: metrics # The NAME of the port in your Service definition
+    path: /metrics
+    interval: 30s

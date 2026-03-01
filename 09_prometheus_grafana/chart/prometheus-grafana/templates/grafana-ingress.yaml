@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: global-grafana-ingress
+  namespace: monitoring
+  annotations:
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.avvk.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: avvk-prom-grafana # Updated to match your actual SVC name
+            port:
+              number: 80
